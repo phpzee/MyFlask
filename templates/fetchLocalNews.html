@@ -1,110 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Latest Local News</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-      background: #f0f5f0;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest Local News</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #a8e063, #56ab2f); /* Green gradient */
+            margin: 0;
+            padding: 0;
+        }
 
-    header {
-      background: #2e7d32;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-    }
+        header {
+            text-align: center;
+            padding: 30px 15px 10px 15px;
+            color: #fff;
+        }
 
-    .last-updated {
-      text-align: center;
-      margin: 10px;
-      font-size: 0.9rem;
-      color: #555;
-    }
+        header h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-    }
+        header p {
+            font-size: 1em;
+            margin-top: 5px;
+        }
 
-    .news-item {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
 
-    .news-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #fff;
+            text-decoration: none;
+            background: #3b7d3b;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
 
-    .news-item h3 {
-      margin-top: 0;
-      font-size: 1.3rem;
-      color: #2e7d32;
-    }
+        .back-link:hover {
+            background: #2c5f2c;
+        }
 
-    .news-item p {
-      font-size: 1rem;
-      margin: 10px 0;
-    }
+        .news-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
 
-    .news-item a {
-      color: #1b5e20;
-      text-decoration: none;
-      font-weight: 600;
-    }
+        .news-card:hover {
+            transform: translateY(-5px);
+        }
 
-    .back-home {
-      display: block;
-      text-align: center;
-      margin: 20px;
-      text-decoration: none;
-      color: #2e7d32;
-      font-weight: 700;
-    }
+        .news-card img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+        }
 
-    @media (max-width: 480px) {
-      header {
-        font-size: 1.5rem;
-      }
-      .news-item h3 {
-        font-size: 1.1rem;
-      }
-      .news-item p {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+        .news-content {
+            padding: 15px;
+        }
+
+        .news-content h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.3em;
+        }
+
+        .news-content p {
+            margin: 0 0 10px 0;
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        .news-content a {
+            color: #2e7d32;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .news-content a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .news-content h2 {
+                font-size: 1.1em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>Latest Local News</header>
-  <div class="last-updated">
-    {% if last_updated %}
-      Last Updated: {{ last_updated }}
-    {% endif %}
-  </div>
-  <div class="container">
+
+<header>
+    <h1>Latest Local News</h1>
+    <p>Last Updated: {{ last_updated }}</p>
+</header>
+
+<div class="container">
+    <a class="back-link" href="/">← Back to Home</a>
+
     {% for article in articles %}
-      <div class="news-item">
-        <h3>{{ article.title }}</h3>
-        <p>{{ article.summary }}</p>
-        <a href="{{ article.link }}" target="_blank">Read more</a>
-      </div>
+    <div class="news-card">
+        {% if article.image %}
+        <img src="{{ article.image }}" alt="News Image">
+        {% endif %}
+        <div class="news-content">
+            <h2>{{ article.title }}</h2>
+            <p>{{ article.summary }}</p>
+            <a href="{{ article.link }}" target="_blank">Read more</a>
+        </div>
+    </div>
     {% endfor %}
-    <a href="/" class="back-home">← Back to Home</a>
-  </div>
+
+    {% if articles|length == 0 %}
+        <p style="color:#fff; font-size:1.2em;">No news found in the last 24 hours.</p>
+    {% endif %}
+</div>
+
 </body>
 </html>
