@@ -10,8 +10,13 @@ app = Flask(__name__)
 def index():
     """
     Homepage with links to TTS and News
+    Passes last_updated for display on homepage
     """
-    return render_template("index.html")
+    try:
+        _, last_updated = fetch_local_news()  # Get latest timestamp
+    except:
+        last_updated = None
+    return render_template("index.html", last_updated=last_updated)
 
 # ---------------- TTS page ----------------
 @app.route("/tts", methods=["GET", "POST"])
@@ -45,8 +50,10 @@ def tts_route():
 @app.route("/news")
 def news_route():
     try:
-        articles = fetch_local_news()   # list of dicts: title, summary, link
-        return render_template("fetchLocalNews.html", articles=articles)
+        articles, last_updated = fetch_local_news()   # list of dicts: title, summary, link
+        return render_template("fetchLocalNews.html",
+                               articles=articles,
+                               last_updated=last_updated)
     except Exception as e:
         return f"<p>News Fetch Error: {str(e)}</p><a href='/'>Back</a>"
 

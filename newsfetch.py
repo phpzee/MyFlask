@@ -1,63 +1,52 @@
+# newsfetch.py
 import feedparser
 from datetime import datetime, timedelta
 
-# RSS feeds from famous and free news portals
-feeds = [
-    "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",      # Mumbai
-    "https://www.ndtv.com/rss/ndtv-mumbai-news",                         # NDTV Mumbai
-    "https://www.hindustantimes.com/rss/topnews/rssfeed.xml",            # HT top news
-    "https://indianexpress.com/section/cities/mumbai/feed/",             # Indian Express Mumbai
-    "https://www.bbc.com/hindi/india/rss.xml",                           # BBC Hindi India
-    "https://www.freepressjournal.in/rss/section/mumbai",                # Free Press Journal Mumbai
-    "https://www.localpress.in/rss/mumbai"                                # Example local portal (replace with real)
+# RSS feeds prioritized: Malvani → Malad West → Mumbai (free portals)
+RSS_FEEDS = [
+    "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",  # Mumbai / local
+    "https://www.hindustantimes.com/rss/mumbai/rssfeed.xml",
+    "https://www.freepressjournal.in/rss/mumbai"  # example free journal
 ]
 
-MAX_ITEMS = 30
+MAX_ARTICLES = 20  # latest 20 articles
 
 def fetch_local_news():
+    """
+    Fetch latest local news from RSS feeds for last 24 hours.
+    Returns:
+        articles: list of dicts {title, summary, link}
+        last_updated: str
+    """
     articles = []
     now = datetime.utcnow()
-    one_day_ago = now - timedelta(days=1)
+    yesterday = now - timedelta(days=1)
 
-    for url in feeds:
+    for url in RSS_FEEDS:
         try:
             feed = feedparser.parse(url)
             for entry in feed.entries:
-                if 'published_parsed' in entry:
+                # Parse published date
+                if hasattr(entry, 'published_parsed'):
                     published = datetime(*entry.published_parsed[:6])
-                else:
-                    continue
+                    if published < yesterday:
+                        continue  # skip older than 24h
 
-                # Only last 24 hours
-                if published < one_day_ago:
-                    continue
+                title = getattr(entry, 'title', 'No Title')
+                summary = getattr(entry, 'summary', '') or getattr(entry, 'description', '')
+                link = getattr(entry, 'link', '#')
+                articles.append({
+                    "title": title,
+                    "summary": summary,
+                    "link": link
+                })
 
-                title = entry.get('title', '')
-                summary = entry.get('summary', '')
-                link = entry.get('link', '')
-
-                # Priority: Malvani > Malad West > Mumbai
-                priority = 0
-                title_lower = (title + " " + summary).lower()
-                if "malvani" in title_lower:
-                    priority = 3
-                elif "malad west" in title_lower:
-                    priority = 2
-                elif "mumbai" in title_lower:
-                    priority = 1
-
-                if priority > 0:
-                    articles.append({
-                        'title': title,
-                        'summary': summary,
-                        'link': link,
-                        'priority': priority,
-                        'published': published
-                    })
-
+                if len(articles) >= MAX_ARTICLES:
+                    break
+            if len(articles) >= MAX_ARTICLES:
+                break
         except Exception as e:
             print("Feed error:", e)
 
-    # Sort by priority (Malvani first)
-    articles.sort(key=lambda x: x['priority'], reverse=True)
-    return articles[:MAX_ITEMS], datetime.now().strftime("%d %b %Y %H:%M:%S")
+    last_updated = datetime.now().strftime("%d %b %Y %H:%M:%S")
+    return articles, last_updated
