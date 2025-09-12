@@ -1,21 +1,110 @@
 <!DOCTYPE html>
-<html>
-<head><title>Local News</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latest Local News</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: #f0f5f0;
+      color: #333;
+    }
+
+    header {
+      background: #2e7d32;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .last-updated {
+      text-align: center;
+      margin: 10px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .news-item {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .news-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .news-item h3 {
+      margin-top: 0;
+      font-size: 1.3rem;
+      color: #2e7d32;
+    }
+
+    .news-item p {
+      font-size: 1rem;
+      margin: 10px 0;
+    }
+
+    .news-item a {
+      color: #1b5e20;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .back-home {
+      display: block;
+      text-align: center;
+      margin: 20px;
+      text-decoration: none;
+      color: #2e7d32;
+      font-weight: 700;
+    }
+
+    @media (max-width: 480px) {
+      header {
+        font-size: 1.5rem;
+      }
+      .news-item h3 {
+        font-size: 1.1rem;
+      }
+      .news-item p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
 <body>
-<h1>Latest Local News</h1>
-<a href="/">← Back to Home</a>
-<hr>
-{% if articles %}
-  {% for article in articles %}
-    <h2>{{ article.title }}</h2>
-    <p>{{ article.summary }}</p>
-    {% if article.link %}
-      <p><a href="{{ article.link }}" target="_blank">Read more</a></p>
+  <header>Latest Local News</header>
+  <div class="last-updated">
+    {% if last_updated %}
+      Last Updated: {{ last_updated }}
     {% endif %}
-    <hr>
-  {% endfor %}
-{% else %}
-<p>No news found.</p>
-{% endif %}
+  </div>
+  <div class="container">
+    {% for article in articles %}
+      <div class="news-item">
+        <h3>{{ article.title }}</h3>
+        <p>{{ article.summary }}</p>
+        <a href="{{ article.link }}" target="_blank">Read more</a>
+      </div>
+    {% endfor %}
+    <a href="/" class="back-home">← Back to Home</a>
+  </div>
 </body>
 </html>
