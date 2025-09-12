@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Local News</title></head>
+<body>
+<h1>Latest Local News</h1>
+<a href="/">← Back to Home</a>
+<hr>
+{% if articles %}
+  {% for article in articles %}
+    <h2>{{ article.title }}</h2>
+    <p>{{ article.summary }}</p>
+    {% if article.link %}
+      <p><a href="{{ article.link }}" target="_blank">Read more</a></p>
+    {% endif %}
+    <hr>
+  {% endfor %}
+{% else %}
+<p>No news found.</p>
+{% endif %}
+</body>
+</html>
