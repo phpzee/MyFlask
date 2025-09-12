@@ -1,22 +1,17 @@
 import os
 from flask import Flask, render_template, request
-from app import generate_tts, HINDI_SPEAKERS   # TTS module
-from newsfetch import fetch_local_news         # News module
+from app import generate_tts, HINDI_SPEAKERS      # TTS module
+from newsfetch import fetch_local_news            # News module
+from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 
 # ---------------- Home page ----------------
 @app.route("/")
 def index():
-    """
-    Homepage with links to TTS and News
-    Passes last_updated for display on homepage
-    """
-    try:
-        _, last_updated = fetch_local_news()  # Get latest timestamp
-    except:
-        last_updated = None
-    return render_template("index.html", last_updated=last_updated)
+    """Homepage with links to TTS and News"""
+    return render_template("index.html")
 
 # ---------------- TTS page ----------------
 @app.route("/tts", methods=["GET", "POST"])
@@ -50,10 +45,10 @@ def tts_route():
 @app.route("/news")
 def news_route():
     try:
-        articles, last_updated = fetch_local_news()   # list of dicts: title, summary, link
-        return render_template("fetchLocalNews.html",
-                               articles=articles,
-                               last_updated=last_updated)
+        articles = fetch_local_news()  # list of dicts: title, summary, link
+        # current time for "Last Updated"
+        last_updated = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y %H:%M:%S")
+        return render_template("fetchLocalNews.html", articles=articles, last_updated=last_updated)
     except Exception as e:
         return f"<p>News Fetch Error: {str(e)}</p><a href='/'>Back</a>"
 
