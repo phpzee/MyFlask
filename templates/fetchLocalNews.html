@@ -1,136 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latest Local News</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #a8e063, #56ab2f); /* Green gradient */
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 15px 10px 15px;
-            color: #fff;
-        }
-
-        header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-
-        header p {
-            font-size: 1em;
-            margin-top: 5px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #fff;
-            text-decoration: none;
-            background: #3b7d3b;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background 0.3s ease;
-        }
-
-        .back-link:hover {
-            background: #2c5f2c;
-        }
-
-        .news-card {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            margin-bottom: 20px;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .news-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .news-card img {
-            width: 100%;
-            max-height: 250px;
-            object-fit: cover;
-        }
-
-        .news-content {
-            padding: 15px;
-        }
-
-        .news-content h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.3em;
-        }
-
-        .news-content p {
-            margin: 0 0 10px 0;
-            font-size: 0.95em;
-            color: #333;
-        }
-
-        .news-content a {
-            color: #2e7d32;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .news-content a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 600px) {
-            header h1 {
-                font-size: 2em;
-            }
-
-            .news-content h2 {
-                font-size: 1.1em;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Local News</title>
+  <style>
+    img.thumb { max-width: 120px; float: left; margin-right: 10px; }
+    .article { overflow: auto; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+  </style>
 </head>
 <body>
+  <h1>Latest Local News</h1>
+  <a href="/">← Back to Home</a>
+  <hr>
 
-<header>
-    <h1>Latest Local News</h1>
-    <p>Last Updated: {{ last_updated }}</p>
-</header>
-
-<div class="container">
-    <a class="back-link" href="/">← Back to Home</a>
-
-    {% for article in articles %}
-    <div class="news-card">
-        {% if article.image %}
-        <img src="{{ article.image }}" alt="News Image">
+  {% if articles %}
+    {% for a in articles %}
+      <div class="article">
+        <h2>{{ a.title }}</h2>
+        <div class="summary">{{ a.summary | safe }}</div>
+        {% if a.link %}
+          <p><a href="{{ a.link }}" target="_blank" rel="noopener">Read more</a></p>
         {% endif %}
-        <div class="news-content">
-            <h2>{{ article.title }}</h2>
-            <p>{{ article.summary }}</p>
-            <a href="{{ article.link }}" target="_blank">Read more</a>
-        </div>
-    </div>
+      </div>
     {% endfor %}
-
-    {% if articles|length == 0 %}
-        <p style="color:#fff; font-size:1.2em;">No news found in the last 24 hours.</p>
-    {% endif %}
-</div>
-
+  {% else %}
+    <p>No news found.</p>
+  {% endif %}
 </body>
 </html>
