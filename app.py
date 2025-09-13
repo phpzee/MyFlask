@@ -22,7 +22,7 @@ HINDI_SPEAKERS = {
 
 def generate_tts(text: str, speaker: str = "Standard Hindi") -> str:
     """
-    Generate TTS ok audio and return relative path for Flask.
+    Generate TTS ok2 audio and return relative path for Flask.
     """
     if speaker not in HINDI_SPEAKERS:
         speaker = "Standard Hindi"
