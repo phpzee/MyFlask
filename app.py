@@ -3,14 +3,11 @@ from gtts import gTTS
 from pathlib import Path
 import os, time
 
-# Flask app variable must exist at top-level
 app = Flask(__name__)
 
-# Folder to save MP3s
-BASE_FOLDER = Path.home() / "voice-clone-tts" / "mp3Files"
+BASE_FOLDER = Path("mp3Files")
 os.makedirs(BASE_FOLDER, exist_ok=True)
 
-# Hindi speakers
 HINDI_SPEAKERS = {
     "Standard Hindi": {"lang": "hi", "tld": "co.in"},
     "Female-ish Hindi": {"lang": "hi", "tld": "com"},
@@ -51,8 +48,3 @@ def play_file(filename):
 def download_file(filename):
     file_path = BASE_FOLDER / filename
     return send_file(file_path, as_attachment=True)
-
-# Do NOT run Tkinter or any GUI here!
-# Only run if executing app.py directly for local test
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
