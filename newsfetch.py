@@ -1,49 +1,53 @@
-import requests
-from bs4 import BeautifulSoup
+import feedparser
 from datetime import datetime, timedelta
 
-NEWS_SOURCES = {
-    "Times of India": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
-    "Google News India": "https://news.google.com/rss/search?q=Malad+West+Mumbai&hl=en-IN&gl=IN&ceid=IN:en",
-    "Free Press Journal": "https://www.freepressjournal.in/rss",
-}
+# List of RSS feeds covering Mumbai / India
+RSS_FEEDS = [
+    "https://timesofindia.indiatimes.com/rssfeeds/1898055.cms",  # TOI Mumbai
+    "https://feeds.feedburner.com/FreePressJournalMumbai",       # FPJ Mumbai
+    "https://www.ndtv.com/rss/ndtvnews-mumbai.xml",             # NDTV Mumbai
+    "https://www.hindustantimes.com/rss/mumbai/rssfeed.xml",    # HT Mumbai
+    "https://news.google.com/rss/search?q=Malad+West+Mumbai&hl=en-IN&gl=IN&ceid=IN:en",
+    "https://news.google.com/rss/search?q=Malvani+Mumbai&hl=en-IN&gl=IN&ceid=IN:en",
+    "https://www.dnaindia.com/rss/mumbai.xml",                  # DNA Mumbai
+    "https://www.mid-day.com/rss/mumbai.xml",                   # Mid-Day Mumbai
+    "https://www.livemint.com/rss/news",                        # LiveMint (India)
+    "https://www.thehindu.com/news/cities/mumbai/?service=rss"  # The Hindu Mumbai
+]
 
-TIME_DELTA = timedelta(hours=24)
+# Keywords to filter news
+KEYWORDS = ["Malvani", "Malad West", "Mumbai"]
 
-def fetch_local_news():
-    all_news = []
+def fetch_local_news(max_items=30):
+    news_items = []
+    now = datetime.utcnow()
+    yesterday = now - timedelta(days=1)
 
-    for source_name, url in NEWS_SOURCES.items():
+    for feed_url in RSS_FEEDS:
         try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content, "xml")
-            items = soup.find_all("item")
+            d = feedparser.parse(feed_url)
+            for entry in d.entries:
+                pub_date = None
+                if 'published_parsed' in entry and entry.published_parsed:
+                    pub_date = datetime(*entry.published_parsed[:6])
+                elif 'updated_parsed' in entry and entry.updated_parsed:
+                    pub_date = datetime(*entry.updated_parsed[:6])
 
-            for item in items:
-                title = item.title.text if item.title else "No title"
-                link = item.link.text if item.link else "#"
-                pub_date_text = item.pubDate.text if item.pubDate else None
+                if pub_date and pub_date < yesterday:
+                    continue  # skip news older than 24 hours
 
-                if pub_date_text:
-                    try:
-                        pub_date = datetime.strptime(pub_date_text, "%a, %d %b %Y %H:%M:%S %Z")
-                    except Exception:
-                        pub_date = datetime.now()
-                else:
-                    pub_date = datetime.now()
-
-                if datetime.now() - pub_date <= TIME_DELTA:
-                    if any(loc in title for loc in ["Malvani", "Malad", "Mumbai"]):
-                        all_news.append({
-                            "source": source_name,
-                            "title": title,
-                            "link": link,
-                            "pub_date": pub_date.strftime("%d %b %Y %H:%M")
-                        })
-
+                content = (entry.get("title", "") + " " + entry.get("summary", "")).lower()
+                if any(k.lower() in content for k in KEYWORDS):
+                    news_items.append({
+                        "title": entry.get("title", "No title"),
+                        "link": entry.get("link", ""),
+                        "summary": entry.get("summary", ""),
+                        "published": pub_date.strftime("%d %b %Y %H:%M:%S") if pub_date else "Unknown",
+                        "source": feed_url
+                    })
+                if len(news_items) >= max_items:
+                    break
         except Exception as e:
-            print(f"Error fetching {source_name}: {e}")
+            print(f"Error fetching feed {feed_url}: {e}")
 
-    all_news.sort(key=lambda x: x["pub_date"], reverse=True)
-    return all_news
+    return news_items
