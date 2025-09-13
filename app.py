@@ -6,6 +6,7 @@ import os, time
 BASE_FOLDER = Path("static/mp3Files")
 os.makedirs(BASE_FOLDER, exist_ok=True)
 
+
 HINDI_SPEAKERS = {
     "Standard Hindi": {"lang": "hi", "tld": "co.in"},
     "Female-ish Hindi": {"lang": "hi", "tld": "com"},
@@ -21,7 +22,7 @@ HINDI_SPEAKERS = {
 
 def generate_tts(text: str, speaker: str = "Standard Hindi") -> str:
     """
-    Generate TTS audio and return relative path for Flask.
+    Generate TTS ok audio and return relative path for Flask.
     """
     if speaker not in HINDI_SPEAKERS:
         speaker = "Standard Hindi"
@@ -37,3 +38,4 @@ def generate_tts(text: str, speaker: str = "Standard Hindi") -> str:
 
     # Return relative path for Flask static serving
     return f"mp3Files/{filename}"
+
