@@ -1,54 +1,58 @@
-# app.py (TTS module)
+from flask import Flask, render_template, request, send_file
 from gtts import gTTS
 from pathlib import Path
 import os, time
 
-# save mp3s to static/mp3Files so Flask can serve them via url_for('static', filename=...)
-BASE_FOLDER = Path("static") / "mp3Files"
+# Flask app variable must exist at top-level
+app = Flask(__name__)
+
+# Folder to save MP3s
+BASE_FOLDER = Path.home() / "voice-clone-tts" / "mp3Files"
 os.makedirs(BASE_FOLDER, exist_ok=True)
 
-# Use only safe tlds known to work with gTTS; avoid 'in' and similar that caused 404
+# Hindi speakers
 HINDI_SPEAKERS = {
-    "Standard Hindi": {"lang": "hi", "tld": "com"},
+    "Standard Hindi": {"lang": "hi", "tld": "co.in"},
     "Female-ish Hindi": {"lang": "hi", "tld": "com"},
     "Hindi UK Accent": {"lang": "hi", "tld": "co.uk"},
-    "Hindi Canadian": {"lang": "hi", "tld": "ca"},
-    "Hindi Australian": {"lang": "hi", "tld": "com.au"},
     "Hindi US Accent": {"lang": "hi", "tld": "us"},
-    "Hindi Neutral": {"lang": "hi", "tld": "com"}
 }
 
-def generate_tts(text: str, speaker: str = "Standard Hindi") -> str:
-    """
-    Generate TTS audio from text and return static relative path
-    e.g. "mp3Files/tts_12345.mp3"
-    """
-    if not text or not text.strip():
-        raise Exception("Empty text for TTS")
+@app.route("/app", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        text = request.form.get("text", "").strip()
+        speaker = request.form.get("speaker")
+        if not text:
+            return render_template("app.html", error="Please enter text!", speakers=HINDI_SPEAKERS)
 
-    if speaker not in HINDI_SPEAKERS:
-        speaker = "Standard Hindi"
-
-    lang = HINDI_SPEAKERS[speaker]["lang"]
-    tld = HINDI_SPEAKERS[speaker]["tld"]
-
-    filename = f"tts_{int(time.time()*1000)}.mp3"
-    file_path = BASE_FOLDER / filename
-
-    # try with chosen tld; if fails, fallback to 'com'
-    try:
-        tts = gTTS(text=text, lang=lang, tld=tld)
-        tts.save(file_path)
-    except Exception as e:
-        # fallback attempt with 'com'
         try:
-            tts = gTTS(text=text, lang=lang, tld="com")
+            lang = HINDI_SPEAKERS[speaker]["lang"]
+            tld = HINDI_SPEAKERS[speaker]["tld"]
+
+            filename = f"tts_{int(time.time())}.mp3"
+            file_path = BASE_FOLDER / filename
+
+            tts = gTTS(text=text, lang=lang, tld=tld)
             tts.save(file_path)
-        except Exception as e2:
-            raise Exception(f"TTS generation failed: {e}; fallback failed: {e2}")
 
-    # return path relative to static folder for url_for('static', filename=...)
-    return f"mp3Files/{filename}"
+            return render_template("app.html", success=f"MP3 ready: {filename}", filename=filename, speakers=HINDI_SPEAKERS)
+        except Exception as e:
+            return render_template("app.html", error=f"TTS error: {e}", speakers=HINDI_SPEAKERS)
 
+    return render_template("app.html", error=None, speakers=HINDI_SPEAKERS)
+
+@app.route("/play/<filename>")
+def play_file(filename):
+    file_path = BASE_FOLDER / filename
+    return send_file(file_path, mimetype="audio/mpeg")
+
+@app.route("/download/<filename>")
+def download_file(filename):
+    file_path = BASE_FOLDER / filename
+    return send_file(file_path, as_attachment=True)
+
+# Do NOT run Tkinter or any GUI here!
+# Only run if executing app.py directly for local test
 if __name__ == "__main__":
-    print("app.py is a module providing generate_tts(). Run server.py to serve the web UI.")
+    app.run(host="0.0.0.0", port=5000, debug=True)
