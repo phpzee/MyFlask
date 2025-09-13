@@ -1,49 +1,50 @@
-# newsfetch.py
 import feedparser
-import bleach
+from datetime import datetime, timedelta
+import time
 
-FEEDS = [
-    "https://rss.cnn.com/rss/edition.rss",
-    "https://feeds.bbci.co.uk/news/world/rss.xml",
+# List of RSS feeds (Mumbai / India focused)
+feeds = [
+    "https://timesofindia.indiatimes.com/rssfeeds/2957162.cms",
+    "https://feeds.feedburner.com/ndtvmumbai",
+    "https://www.hindustantimes.com/rss/topnews/rssfeed.xml",
+    "https://www.freepressjournal.in/rss/mumbai",
+    "https://indianexpress.com/section/cities/mumbai/feed/",
+    "https://www.cnn.com/rss/edition_india.rss",
+    "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml",
+    "https://www.thehindu.com/news/cities/mumbai/?service=rss",
+    "https://economictimes.indiatimes.com/rss.cms",
+    "https://news.google.com/rss/search?q=malad+west+mumbai&hl=en-IN&gl=IN&ceid=IN:en"
 ]
 
-MAX_ITEMS = 30
+# Keywords to filter location
+keywords = ["Malvani", "Malad West", "Mumbai"]
 
-# allowed tags/attributes for summaries
-ALLOWED_TAGS = ['p', 'br', 'a', 'img', 'b', 'i', 'strong', 'em', 'ul', 'li']
-ALLOWED_ATTRS = {
-    'a': ['href', 'title', 'target'],
-    'img': ['src', 'alt', 'style', 'height', 'width']
-}
-ALLOWED_PROTOCOLS = ['http', 'https']
+def fetch_local_news():
+    local_news = []
+    now = datetime.utcnow()
+    since = now - timedelta(hours=24)
 
-def clean_html(html_text: str) -> str:
-    if not html_text:
-        return ""
-    return bleach.clean(html_text,
-                        tags=ALLOWED_TAGS,
-                        attributes=ALLOWED_ATTRS,
-                        protocols=ALLOWED_PROTOCOLS,
-                        strip=True)
-
-def fetch_local_news(max_items: int = MAX_ITEMS):
-    articles = []
-    count = 0
-    for url in FEEDS:
+    for url in feeds:
         try:
             d = feedparser.parse(url)
             for entry in d.entries:
-                if count >= max_items:
-                    break
-                title = entry.get('title', 'No title')
-                summary_raw = entry.get('summary', '') or entry.get('description', '')
-                summary = clean_html(summary_raw)
-                link = entry.get('link', '')
-                articles.append({'title': title, 'summary': summary, 'link': link})
-                count += 1
+                # Check published date if available
+                pub_date = getattr(entry, "published_parsed", None)
+                if pub_date:
+                    pub_datetime = datetime.fromtimestamp(time.mktime(pub_date))
+                    if pub_datetime < since:
+                        continue  # skip older news
+
+                # Filter by keywords
+                title = entry.get('title', '')
+                summary = entry.get('summary', '')
+                if any(k.lower() in (title + summary).lower() for k in keywords):
+                    local_news.append({
+                        "title": title,
+                        "summary": summary,
+                        "link": entry.get('link', ''),
+                        "published": entry.get('published', '')
+                    })
         except Exception as e:
-            # skip failed feed but continue others
-            print("Feed error:", e)
-    if not articles:
-        articles = [{'title': 'No news found', 'summary': '', 'link': ''}]
-    return articles
+            print("Error fetching feed:", url, e)
+    return local_news
